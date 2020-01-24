@@ -101,8 +101,8 @@ public class DelayedJapanizeConvertTask extends BukkitRunnable {
         String japanized = YukiKanaConverter.conv(keywordLocked);
 
         // IME変換
-        if ( type == JapanizeType.GOOGLE_IME ) {
-            japanized = IMEConverter.convByGoogleIME(japanized);
+        if ( type != JapanizeType.KANA ) {
+            japanized = IMEConverter.conv(japanized, type);
         }
 
         // キーワードのアンロック
