@@ -24,10 +24,12 @@ import com.google.common.io.CharStreams;
  */
 public class IMEConverter {
 
-    private static final String SOCIAL_IME_URL =
-        "https://www.social-ime.com/api/?string=";
+    // private static final String SOCIAL_IME_URL =
+    //     "https://www.social-ime.com/api/?string=";
     private static final String GOOGLE_IME_URL =
         "https://www.google.com/transliterate?langpair=ja-Hira|ja&text=";
+    private static final String BAIDU_IME_URL =
+        "https://cloud.ime.baidu.jp/py?ol=1&py=";
 
     /**
      * GoogleIMEを使って変換する
@@ -35,7 +37,7 @@ public class IMEConverter {
      * @return 変換後
      */
     public static String convByGoogleIME(String org) {
-        return conv(org, true);
+        return conv(org, JapanizeType.GOOGLE_IME);
     }
 
     /**
@@ -46,11 +48,11 @@ public class IMEConverter {
      */
     @Deprecated
     public static String convBySocialIME(String org) {
-        return conv(org, false);
+        return org;
     }
 
     // 変換の実行
-    private static String conv(String org, boolean isGoogleIME) {
+    public static String conv(String org, JapanizeType type) {
 
         if ( org.length() == 0 ) {
             return "";
@@ -59,14 +61,16 @@ public class IMEConverter {
         HttpURLConnection urlconn = null;
         BufferedReader reader = null;
         try {
-            String baseurl;
-            String encode;
-            if ( isGoogleIME ) {
+            String baseurl = null;
+            switch ( type ) {
+            case GOOGLE_IME:
                 baseurl = GOOGLE_IME_URL + URLEncoder.encode(org , "UTF-8");
-                encode = "UTF-8";
-            } else {
-                baseurl = SOCIAL_IME_URL + URLEncoder.encode(org , "UTF-8");
-                encode = "EUC_JP";
+                break;
+            case BAIDU_IME:
+                baseurl = BAIDU_IME_URL + URLEncoder.encode(org , "UTF-8");
+                break;
+            default:
+                break;
             }
             URL url = new URL(baseurl);
 
@@ -76,10 +80,23 @@ public class IMEConverter {
             urlconn.connect();
 
             reader = new BufferedReader(
-                    new InputStreamReader(urlconn.getInputStream(), encode));
+                    new InputStreamReader(urlconn.getInputStream(), "UTF-8"));
 
             String json = CharStreams.toString(reader);
-            String parsed = GoogleIME.parseJson(json);
+            String parsed = null;
+            switch ( type ) {
+            case GOOGLE_IME:
+                parsed = GoogleIME.parseJson(json);
+                break;
+            case BAIDU_IME:
+                parsed = BaiduIME.parseJson(json);
+                break;
+            default:
+                break;
+            }
+            if ( parsed == null ) {
+                parsed = org;
+            }
             if ( !Utility.isCB19orLater() ) {
                 parsed = YukiKanaConverter.fixBrackets(parsed);
             }
@@ -113,6 +130,7 @@ public class IMEConverter {
         System.out.println("original : " + testee);
         System.out.println("kana : " + YukiKanaConverter.conv(testee));
         System.out.println("GoogleIME : " + convByGoogleIME(YukiKanaConverter.conv(testee)));
+        System.out.println("BaiduIME : " + conv(YukiKanaConverter.conv(testee), JapanizeType.BAIDU_IME));
         System.out.println("SocialIME : " + convBySocialIME(YukiKanaConverter.conv(testee)));
     }
 }
