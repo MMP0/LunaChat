@@ -182,11 +182,12 @@ enableNormalChatColorCode: true
 # -------------------- Japanize変換設定 --------------------
 
 # ローマ字をかな文字や漢字に変換する設定。
-# none/kana/GoogleIME の3つのいずれかが設定可能。
+# none/kana/GoogleIME/BaiduIME の3つのいずれかが設定可能。
 # none      : 変換なし。
 # kana      : かな変換のみ。
 # GoogleIME : かな変換したのち、GoogleIMEを使って漢字変換する。
-japanizeType: GoogleIME
+# BaiduIME : かな変換したのち、BaiduIMEを使って漢字変換する。
+japanizeType: BaiduIME
 
 # かな変換や漢字変換時に、
 # 変換結果を元の発言内容と合わせて1行で表示するか、
